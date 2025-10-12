@@ -1,0 +1,127 @@
+# ASL Translator Configuration
+# Mathematical Linguistics and Scalable Modeling for Large Vocabulary ASL Translation
+
+# Data Configuration
+data:
+  raw_data_path: "data/raw"
+  processed_data_path: "data/processed"
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+  
+# Feature Extraction
+features:
+  # Landmark dimensions
+  hands_dim: 21
+  face_dim: 468  
+  pose_dim: 33
+  total_landmarks: 1623
+  
+  # Product VQ codebook sizes
+  codebook_sizes:
+    hands: 64      # Σ_H
+    location: 128  # Σ_L  
+    orientation: 32  # Σ_O
+    motion: 64     # Σ_M
+    non_manual: 32  # Σ_N
+    
+  # VQ commitment loss weight
+  beta: 0.25
+  
+# Spatial Discourse
+spatial:
+  window_size: 2.0  # 2 seconds
+  voxel_size: 0.08  # 8 cm
+  pointing_sigma: 2.0  # degrees
+  
+# Model Architecture
+model:
+  # Causal TCN encoder
+  encoder:
+    num_layers: 3
+    hidden_dim: 256
+    kernel_size: 5
+    dropout: 0.2
+    
+  # CTC head
+  ctc:
+    blank_idx: 0
+    
+# Training Configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 3.0e-4
+  weight_decay: 1.0e-4
+  
+  # Loss weights
+  lambda_vq: 0.1
+  lambda_cal: 0.05
+  
+  # Optimizer
+  optimizer: "adamw"
+  scheduler: "cosine"
+  
+  # Early stopping
+  patience: 10
+  min_delta: 1.0e-4
+  
+# WFST Configuration
+wfst:
+  # HMM parameters
+  hmm:
+    num_states: 3
+    self_loop_prob: 0.7
+    
+  # Context
+  context:
+    left_context: 1
+    right_context: 1
+    
+  # Language model
+  lm:
+    order: 4  # 4-gram
+    prune_threshold: 1.0e-8
+    
+  # Decoding
+  decoding:
+    beam: 12
+    lattice_beam: 8
+    max_active: 10000
+    
+# Evaluation
+evaluation:
+  metrics:
+    - "top1_accuracy"
+    - "top5_accuracy" 
+    - "wer"
+    - "referent_accuracy"
+    
+  # Latency profiling
+  latency:
+    keypoints: "κ_KP"
+    encoder: "κ_Enc"
+    decoder: "κ_Dec" 
+    postprocess: "κ_Post"
+    
+# Information Theory
+information:
+  # Mutual information estimation
+  club_samples: 1000
+  
+  # Device costs for efficiency analysis
+  device_costs:
+    cpu: 1.0
+    nnapi: 0.5
+    
+# System
+system:
+  seed: 42
+  device: "cuda"
+  num_workers: 4
+  pin_memory: true
+  
+# Export
+export:
+  format: "torchscript"
+  optimize_for_mobile: true
